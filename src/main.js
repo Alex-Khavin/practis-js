@@ -16,8 +16,13 @@
 // Клік по кнопці logout повертає все до початкового вигляду і видаляє дані користувача
 // з локального сховища.
 
+import iziToast from 'izitoast';
+import "izitoast/dist/css/iziToast.min.css";
 import { refs } from './js/refs';
 import { saveData, getData, clearData } from './js/storage';
+import iconFile from "./img/javascript.svg";
+import "./js/modul-10";
+
 
 const USER_DATA = {
   email: 'user@mail.com',
@@ -41,11 +46,11 @@ function handlerSubmit(event) {
     return;
   }
   if (emailValue === '' || passValue === '') {
-    alert('Заповніть усі поля!');
+    iziToast.warning({message: 'Заповніть усі поля!'});
     return;
   }
   if (emailValue !== USER_DATA.email || passValue !== USER_DATA.password) {
-    alert('Данні не коректні');
+    iziToast.error({message: 'Данні не коректні', iconUrl: iconFile});
     return;
   }
   saveData(LS_KEY, { email: emailValue, password: passValue });
@@ -64,3 +69,4 @@ document.addEventListener(`DOMContentLoaded`, () => {
     refs.inputPass.setAttribute('readonly', true);
   }
 });
+
