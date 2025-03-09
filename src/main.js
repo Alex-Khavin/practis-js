@@ -16,35 +16,51 @@
 // Клік по кнопці logout повертає все до початкового вигляду і видаляє дані користувача
 // з локального сховища.
 
-import { refs } from "./js/refs";
-import { saveData } from "./js/storage";
+import { refs } from './js/refs';
+import { saveData, getData, clearData } from './js/storage';
 
 const USER_DATA = {
   email: 'user@mail.com',
   password: 'secret',
 };
 
-const LS_KEY = "user-data";
+const LS_KEY = 'user-data';
 
-refs.form.addEventListener("submit", handlerSubmit)
+refs.form.addEventListener('submit', handlerSubmit);
 
 function handlerSubmit(event) {
-    event.preventDefault();
-    const emailValue = refs.inputEmail.value.trim();
-    const passValue = refs.inputPass.value.trim();
-
-    if (emailValue === "" || passValue === "") {
-        alert("Заповніть усі поля!")
-        return;
-    }
-    if (emailValue !== USER_DATA.email || passValue !== USER_DATA.password) {
-        alert("Данні не коректні")
-        return;
-    }
-    saveData(LS_KEY, { email: emailValue, password: passValue })
-    refs.btn.textContent = "Logout";
-    refs.inputEmail.setAttribute("readonly", true);
-    refs.inputPass.setAttribute("readonly", true);
-
+  event.preventDefault();
+  const emailValue = refs.inputEmail.value.trim();
+  const passValue = refs.inputPass.value.trim();
+  if (refs.btn.textContent === `Logout`) {
+    refs.form.reset();
+    clearData(LS_KEY);
+    refs.inputEmail.removeAttribute('readonly');
+    refs.inputPass.removeAttribute('readonly');
+    refs.btn.textContent = `Login`;
+    return;
+  }
+  if (emailValue === '' || passValue === '') {
+    alert('Заповніть усі поля!');
+    return;
+  }
+  if (emailValue !== USER_DATA.email || passValue !== USER_DATA.password) {
+    alert('Данні не коректні');
+    return;
+  }
+  saveData(LS_KEY, { email: emailValue, password: passValue });
+  refs.btn.textContent = 'Logout';
+  refs.inputEmail.setAttribute('readonly', true);
+  refs.inputPass.setAttribute('readonly', true);
 }
 
+document.addEventListener(`DOMContentLoaded`, () => {
+  const data = getData(LS_KEY);
+  if (data) {
+    refs.inputEmail.value = data.email ?? ``;
+    refs.inputPass.value = data.password ?? ``;
+    refs.btn.textContent = 'Logout';
+    refs.inputEmail.setAttribute('readonly', true);
+    refs.inputPass.setAttribute('readonly', true);
+  }
+});
