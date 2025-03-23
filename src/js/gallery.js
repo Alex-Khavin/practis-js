@@ -15,10 +15,44 @@ import "tui-pagination/dist/tui-pagination.min.css"
 import Pagination from 'tui-pagination';
 import { renderGallery } from './createGalleryCard';
 import { UnsplashAPI } from './UnsplashAPI';
+import iziToast from 'izitoast';
+import "izitoast/dist/css/iziToast.min.css";
 
 const api = new UnsplashAPI();
 
 const container = document.getElementById('tui-pagination-container');
+const searchForm = document.querySelector(".js-search-form");
+
+searchForm.addEventListener("submit", async event => {
+  event.preventDefault();
+
+  const inputValue = event.target.elements.query.value.trim();
+  if (inputValue === "") {
+    iziToast.warning({ message: 'Enter something for search!' });
+    return;
+  }
+  api.query = inputValue;
+
+  pagination.off('afterMove', paginationPopular);
+  pagination.off('afterMove', paginationByQuery);
+
+  try {
+    const data = await api.getPhotosByQuery(page)
+    if (data.results.length === 0) {
+      iziToast.error({ message: 'Images not found!' });
+      return;
+    }
+    renderGallery(data.results);
+    pagination.reset(data.total);
+    pagination.on('afterMove', paginationByQuery);
+    iziToast.success({ message: `We found ${data.total} images.` });
+
+    } catch (error) {
+    console.log(error);
+    iziToast.error({ message: 'Oops somthing went wrong!' });
+  }
+})
+
 const pagination = new Pagination(container, {
   totalItems: 0,
      itemsPerPage: 12,
@@ -31,9 +65,17 @@ api.getPopularPhotos(page).then(({ results, total }) => {
   pagination.reset(total);
 });
 
-pagination.on('afterMove', (event) => {
+pagination.on('afterMove', paginationPopular);
+function paginationPopular(event) {
      const currentPage = event.page;
      api.getPopularPhotos(currentPage).then(({ results }) => {
   renderGallery(results);
 });
-});
+};
+
+function paginationByQuery(event) {
+  const currentPage = event.page;
+  api.getPhotosByQuery(currentPage).then(({ results }) => {
+    renderGallery(results);
+  })
+};
