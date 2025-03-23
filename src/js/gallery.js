@@ -22,6 +22,7 @@ const api = new UnsplashAPI();
 
 const container = document.getElementById('tui-pagination-container');
 const searchForm = document.querySelector(".js-search-form");
+const loader = document.querySelector(".loader");
 
 searchForm.addEventListener("submit", async event => {
   event.preventDefault();
@@ -35,21 +36,28 @@ searchForm.addEventListener("submit", async event => {
 
   pagination.off('afterMove', paginationPopular);
   pagination.off('afterMove', paginationByQuery);
-
+  showElement(loader);
   try {
     const data = await api.getPhotosByQuery(page)
     if (data.results.length === 0) {
       iziToast.error({ message: 'Images not found!' });
       return;
     }
+
     renderGallery(data.results);
     pagination.reset(data.total);
     pagination.on('afterMove', paginationByQuery);
     iziToast.success({ message: `We found ${data.total} images.` });
-
+    if (data.total <= 12) {
+      hideElement(container)
+    } else {
+      showElement(container);
+    }
     } catch (error) {
     console.log(error);
     iziToast.error({ message: 'Oops somthing went wrong!' });
+  } finally {
+    hideElement(loader);
   }
 })
 
@@ -75,7 +83,14 @@ function paginationPopular(event) {
 
 function paginationByQuery(event) {
   const currentPage = event.page;
+  showElement(loader);
   api.getPhotosByQuery(currentPage).then(({ results }) => {
     renderGallery(results);
-  })
+  }).finally (()=> hideElement(loader))
 };
+function showElement(element) {
+  element.classList.remove("hidden")
+}
+function hideElement(element) {
+  element.classList.add("hidden")
+}
